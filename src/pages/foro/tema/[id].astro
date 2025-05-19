@@ -1,0 +1,137 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+
+// Datos de ejemplo (en un caso real, esto vendría de una base de datos)
+const topics = {
+  '1': {
+    id: '1',
+    title: '¿Cómo crear un presupuesto mensual?',
+    category: 'finanzas',
+    author: 'Juan Pérez',
+    content: 'Hola a todos, estoy interesado en aprender a crear un presupuesto mensual efectivo. ¿Podrían compartir sus experiencias y consejos?',
+    createdAt: '2024-03-15',
+    replies: [
+      {
+        id: '1',
+        author: 'María García',
+        content: 'Te recomiendo empezar por listar todos tus ingresos y gastos fijos. Luego, asigna un porcentaje para ahorro e inversión.',
+        createdAt: '2024-03-15'
+      },
+      {
+        id: '2',
+        author: 'Carlos Rodríguez',
+        content: 'Yo uso la regla 50/30/20: 50% para necesidades, 30% para deseos y 20% para ahorro.',
+        createdAt: '2024-03-15'
+      }
+    ]
+  }
+};
+
+const { id } = Astro.params;
+const topic = topics[id];
+
+if (!topic) {
+  return Astro.redirect('/404');
+}
+---
+
+<Layout title={`${topic.title} - Foro EduFin`}>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Tema principal -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          {topic.title}
+        </h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          Publicado por {topic.author} el {topic.createdAt}
+        </p>
+      </div>
+      <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <div class="prose max-w-none">
+          {topic.content}
+        </div>
+      </div>
+    </div>
+
+    <!-- Respuestas -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          Respuestas ({topic.replies.length})
+        </h3>
+      </div>
+      <div class="border-t border-gray-200">
+        {topic.replies.map((reply) => (
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200 last:border-b-0">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="h-10 w-10 rounded-full bg-gray-200"></div>
+                </div>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900">
+                    {reply.author}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {reply.createdAt}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 prose max-w-none">
+              {reply.content}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Formulario de respuesta -->
+    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">
+          Escribe una respuesta
+        </h3>
+      </div>
+      <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <form id="reply-form">
+          <div>
+            <label for="content" class="sr-only">Respuesta</label>
+            <textarea
+              id="content"
+              name="content"
+              rows={4}
+              class="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              placeholder="Escribe tu respuesta aquí..."
+            />
+          </div>
+          <div class="mt-5 flex justify-end">
+            <button
+              type="submit"
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              Publicar respuesta
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const form = document.getElementById('reply-form');
+  
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const content = formData.get('content');
+
+    // Aquí iría la lógica para enviar la respuesta al servidor
+    console.log('Nueva respuesta:', content);
+    alert('Respuesta publicada exitosamente');
+    window.location.reload();
+  });
+</script> 

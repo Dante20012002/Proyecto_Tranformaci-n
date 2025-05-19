@@ -1,0 +1,120 @@
+---
+interface Props {
+  question: {
+    id: string;
+    text: string;
+    type: 'multiple' | 'boolean' | 'drag-drop' | 'fill';
+    options?: string[];
+    correctAnswer: string | string[];
+  };
+  onAnswer: (answer: string | string[]) => void;
+}
+
+const { question, onAnswer } = Astro.props;
+---
+
+<div class="bg-white shadow rounded-lg p-6 mb-4">
+  <h3 class="text-lg font-medium text-gray-900 mb-4">{question.text}</h3>
+  
+  {question.type === 'multiple' && (
+    <div class="space-y-3">
+      {question.options?.map((option) => (
+        <label class="flex items-center space-x-3">
+          <input
+            type="radio"
+            name={`question-${question.id}`}
+            value={option}
+            class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+            onchange={`onAnswer('${option}')`}
+          />
+          <span class="text-gray-700">{option}</span>
+        </label>
+      ))}
+    </div>
+  )}
+
+  {question.type === 'boolean' && (
+    <div class="space-y-3">
+      <label class="flex items-center space-x-3">
+        <input
+          type="radio"
+          name={`question-${question.id}`}
+          value="true"
+          class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+          onchange={`onAnswer('true')`}
+        />
+        <span class="text-gray-700">Verdadero</span>
+      </label>
+      <label class="flex items-center space-x-3">
+        <input
+          type="radio"
+          name={`question-${question.id}`}
+          value="false"
+          class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+          onchange={`onAnswer('false')`}
+        />
+        <span class="text-gray-700">Falso</span>
+      </label>
+    </div>
+  )}
+
+  {question.type === 'fill' && (
+    <div class="mt-2">
+      <input
+        type="text"
+        class="shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-300 rounded-md"
+        placeholder="Escribe tu respuesta"
+        onchange={`onAnswer(this.value)`}
+      />
+    </div>
+  )}
+
+  {question.type === 'drag-drop' && (
+    <div class="mt-2">
+      <div id={`drag-container-${question.id}`} class="min-h-[100px] border-2 border-dashed border-gray-300 rounded-lg p-4">
+        <div class="grid grid-cols-2 gap-4">
+          {question.options?.map((option) => (
+            <div
+              class="bg-gray-100 p-2 rounded cursor-move"
+              draggable="true"
+              data-value={option}
+            >
+              {option}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
+<script>
+  // Lógica para drag and drop
+  if (document.querySelector(`#drag-container-${question.id}`)) {
+    const container = document.querySelector(`#drag-container-${question.id}`);
+    const items = container.querySelectorAll('[draggable="true"]');
+    
+    items.forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', item.dataset.value);
+        item.classList.add('opacity-50');
+      });
+
+      item.addEventListener('dragend', () => {
+        item.classList.remove('opacity-50');
+      });
+    });
+
+    container.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    container.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const value = e.dataTransfer.getData('text/plain');
+      const answers = Array.from(container.querySelectorAll('[draggable="true"]'))
+        .map(item => item.dataset.value);
+      onAnswer(answers);
+    });
+  }
+</script> 

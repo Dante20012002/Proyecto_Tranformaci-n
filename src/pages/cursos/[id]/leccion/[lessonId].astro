@@ -1,0 +1,249 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+
+interface Resource {
+  title: string;
+  type: 'pdf' | 'excel';
+  url: string;
+}
+
+interface Lesson {
+  id: string;
+  title: string;
+  type: 'video' | 'article';
+  duration: string;
+  content: string;
+  description: string;
+  resources?: Resource[];
+}
+
+interface Module {
+  id: string;
+  title: string;
+  lessons: Lesson[];
+}
+
+interface Course {
+  id: string;
+  title: string;
+  modules: Module[];
+}
+
+// Datos de ejemplo (en un caso real, esto vendría de una base de datos)
+const courses: Record<string, Course> = {
+  'finanzas-basicas': {
+    id: 'finanzas-basicas',
+    title: 'Finanzas Básicas',
+    modules: [
+      {
+        id: '1',
+        title: 'Introducción a las Finanzas Personales',
+        lessons: [
+          {
+            id: '1-1',
+            title: '¿Qué son las finanzas personales?',
+            type: 'video',
+            duration: '15 minutos',
+            content: 'https://www.youtube.com/embed/example1',
+            description: 'En esta lección aprenderás los conceptos básicos de las finanzas personales y su importancia en tu vida diaria.',
+            resources: [
+              {
+                title: 'Guía de finanzas personales',
+                type: 'pdf',
+                url: '/resources/finanzas/guia-basica.pdf'
+              },
+              {
+                title: 'Plantilla de presupuesto',
+                type: 'excel',
+                url: '/resources/finanzas/presupuesto.xlsx'
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+};
+
+const { id, lessonId } = Astro.params;
+const course = id ? courses[id] : null;
+
+if (!course) {
+  return Astro.redirect('/404');
+}
+
+// Encontrar la lección actual
+let currentLesson: Lesson | null = null;
+let currentModule: Module | null = null;
+
+for (const module of course.modules) {
+  const lesson = module.lessons.find((l: Lesson) => l.id === lessonId);
+  if (lesson) {
+    currentLesson = lesson;
+    currentModule = module;
+    break;
+  }
+}
+
+if (!currentLesson || !currentModule) {
+  return Astro.redirect('/404');
+}
+
+// Asegurarnos de que TypeScript sepa que currentModule no es null
+const module = currentModule;
+
+---
+
+<Layout title={`${currentLesson.title} - ${course.title}`}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+      <!-- Contenido principal -->
+      <div class="lg:col-span-8">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div class="px-4 py-5 sm:px-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                  {currentLesson.title}
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                  {module.title}
+                </p>
+              </div>
+              <div class="flex items-center">
+                <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+                  {currentLesson.duration}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="border-t border-gray-200">
+            {currentLesson.type === 'video' ? (
+              <div class="aspect-w-16 aspect-h-9">
+                <iframe
+                  src={currentLesson.content}
+                  class="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
+              </div>
+            ) : (
+              <div class="px-4 py-5 sm:px-6 prose max-w-none">
+                <!-- Aquí iría el contenido del artículo -->
+                <p>{currentLesson.description}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <!-- Recursos adicionales -->
+        {currentLesson.resources && currentLesson.resources.length > 0 && (
+          <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+              <h3 class="text-lg leading-6 font-medium text-gray-900">
+                Recursos Adicionales
+              </h3>
+            </div>
+            <div class="border-t border-gray-200">
+              <ul role="list" class="divide-y divide-gray-200">
+                {currentLesson.resources.map((resource) => (
+                  <li class="px-4 py-4 sm:px-6">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                          {resource.type === 'pdf' ? (
+                            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                          ) : (
+                            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div class="ml-4">
+                          <p class="text-sm font-medium text-gray-900">
+                            {resource.title}
+                          </p>
+                          <p class="text-sm text-gray-500">
+                            {resource.type.toUpperCase()}
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <a
+                          href={resource.url}
+                          class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-primary-700 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                          download
+                        >
+                          Descargar
+                        </a>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="mt-8 lg:mt-0 lg:col-span-4">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">
+              Contenido del Curso
+            </h3>
+          </div>
+          <div class="border-t border-gray-200">
+            {course.modules.map((module) => (
+              <div class="border-b border-gray-200 last:border-b-0">
+                <div class="px-4 py-3">
+                  <h4 class="text-sm font-medium text-gray-900">
+                    {module.title}
+                  </h4>
+                </div>
+                <div class="border-t border-gray-200">
+                  {module.lessons.map((lesson) => (
+                    <a
+                      href={`/cursos/${course.id}/leccion/${lesson.id}`}
+                      class={`block px-4 py-3 hover:bg-gray-50 ${
+                        lesson.id === lessonId ? 'bg-primary-50' : ''
+                      }`}
+                    >
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                          {lesson.type === 'video' ? (
+                            <svg class="h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          ) : (
+                            <svg class="h-5 w-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                          )}
+                        </div>
+                        <div class="ml-3">
+                          <p class={`text-sm font-medium ${
+                            lesson.id === lessonId ? 'text-primary-600' : 'text-gray-900'
+                          }`}>
+                            {lesson.title}
+                          </p>
+                          <p class="text-xs text-gray-500">
+                            {lesson.duration}
+                          </p>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout> 

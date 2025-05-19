@@ -1,0 +1,112 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Question from '../../components/Question.astro';
+
+// Datos de ejemplo (en un caso real, esto vendría de una base de datos)
+const quizzes = {
+  'finanzas-basicas': {
+    id: 'finanzas-basicas',
+    title: 'Finanzas Básicas',
+    description: 'Conceptos fundamentales de finanzas personales',
+    questions: [
+      {
+        id: '1',
+        text: '¿Qué es un presupuesto?',
+        type: 'multiple',
+        options: [
+          'Un plan de gastos e ingresos',
+          'Una cuenta bancaria',
+          'Un tipo de inversión',
+          'Un préstamo'
+        ],
+        correctAnswer: 'Un plan de gastos e ingresos'
+      },
+      {
+        id: '2',
+        text: '¿Es importante ahorrar una parte de tus ingresos?',
+        type: 'boolean',
+        correctAnswer: 'true'
+      }
+    ]
+  },
+  'emprendimiento': {
+    id: 'emprendimiento',
+    title: 'Emprendimiento',
+    description: 'Conceptos básicos sobre emprendimiento',
+    questions: [
+      {
+        id: '1',
+        text: 'Ordena los pasos para iniciar un negocio:',
+        type: 'drag-drop',
+        options: [
+          'Plan de negocio',
+          'Investigación de mercado',
+          'Financiamiento',
+          'Implementación'
+        ],
+        correctAnswer: ['Investigación de mercado', 'Plan de negocio', 'Financiamiento', 'Implementación']
+      }
+    ]
+  }
+};
+
+const { id } = Astro.params;
+const quiz = quizzes[id];
+
+if (!quiz) {
+  return Astro.redirect('/404');
+}
+---
+
+<Layout title={`${quiz.title} - EduFin`}>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+        {quiz.title}
+      </h1>
+      <p class="mt-3 text-xl text-gray-500">
+        {quiz.description}
+      </p>
+    </div>
+
+    <div id="quiz-container">
+      {quiz.questions.map((question, index) => (
+        <Question
+          question={question}
+          client:load
+        />
+      ))}
+    </div>
+
+    <div class="mt-8 flex justify-between">
+      <button
+        type="button"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-700 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+        onclick="window.history.back()"
+      >
+        Volver
+      </button>
+      <button
+        type="button"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+        onclick="submitQuiz()"
+      >
+        Finalizar cuestionario
+      </button>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  let answers = {};
+
+  function handleAnswer(questionId: string, answer: string | string[]) {
+    answers[questionId] = answer;
+  }
+
+  function submitQuiz() {
+    // Aquí iría la lógica para enviar las respuestas al servidor
+    console.log('Respuestas:', answers);
+    alert('¡Cuestionario completado!');
+  }
+</script> 
